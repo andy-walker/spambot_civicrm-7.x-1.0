@@ -69,14 +69,19 @@ function drush_spambot_civicrm($command) {
 
                 $result = civicrm_api('group', 'create', array(
                     'version' => 3,
-                    'name'    => $group_name = dt('Spambot CiviCRM Contacts - @date', array('@date' => date('d/m/Y H:i:s')))
+                    'name'    => $group_name = dt('Spambot CiviCRM Contacts - @date', array('@date' => date('dmYHiS')))
                 ));
 
-                drush_log(dt('Created group: @name', array('@name' => $group_name)));
-
                 if ($result['is_error']) {
-                    # todo
+                    
+                    drush_log(dt(
+                        'Unable to create group. @message', 
+                        array('@message' => $result['error_message'])
+                    ), 'error');
+
                 } else { 
+
+                    drush_log(dt('Created group: @name', array('@name' => $group_name)));
 
                     # put contacts in group
                     $params = array('version' => 3);
@@ -86,9 +91,15 @@ function drush_spambot_civicrm($command) {
                     $result = civicrm_api('groupcontact', 'create', $params);
                     
                     if ($result['is_error']) {
-                        # todo
+                        drush_log(dt(
+                            'Unable to add contacts to group. @message', 
+                            array('@message' => $result['error_message'])
+                        ), 'error');
                     } else {
-                        drush_log(dt('@some suspected spam contacts added to group.', array('@some' => count($contact_ids))));
+                        drush_log(dt(
+                            '@some suspected spam contacts added to group.', 
+                            array('@some' => count($contact_ids))
+                        ), 'ok');
                     }
 
                 }

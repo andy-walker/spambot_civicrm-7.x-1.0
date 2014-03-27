@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * Spambot CiviCRM - hook into user_delete, so that the corresponding Civi contact is
+ * deleted whenever spambot deletes a user
+ * andyw@circle, 27/03/2014
+ */
+
+/**
  * Implementation of hook_user_delete
  */
 function spambot_civicrm_user_delete($account) {
