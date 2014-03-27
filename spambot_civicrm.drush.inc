@@ -27,7 +27,7 @@ function drush_spambot_civicrm($command) {
         
         case 'move-to-group':
             
-            civicrm_intialize();
+            civicrm_initialize();
 
             # query all contacts without a corresponding drupal user
             
@@ -41,7 +41,7 @@ function drush_spambot_civicrm($command) {
             $uf_matches = array();
 
             # get all uids from Drupal
-            $results = db_select('user', 'u')
+            $results = db_select('users', 'u')
                 ->fields('u', array('uid'))
                 ->execute();
         
@@ -69,7 +69,7 @@ function drush_spambot_civicrm($command) {
 
                 $result = civicrm_api('group', 'create', array(
                     'version' => 3,
-                    'name'    => $group_name = dt('Spambot CiviCRM Contacts - @date', array('@date' => date('dmYHiS')))
+                    'title'   => dt('Spambot CiviCRM Contacts - @date', array('@date' => date('d/m/Y H:i:s')))
                 ));
 
                 if ($result['is_error']) {
@@ -81,14 +81,20 @@ function drush_spambot_civicrm($command) {
 
                 } else { 
 
-                    drush_log(dt('Created group: @name', array('@name' => $group_name)));
+                    $group = reset($result['values']);
+
+                    drush_log(dt('Created group: @name', array('@name' => $group['title'])), 'ok');
 
                     # put contacts in group
-                    $params = array('version' => 3);
-                    foreach ($contact_ids as $index => $contact_id)
-                        $params['contact_id' . ($index ? $index + 1 : '')] = $contact_id;
+                    $params = array(
+                        'version'  => 3,
+                        'group_id' => $group['id']
+                    );
 
-                    $result = civicrm_api('groupcontact', 'create', $params);
+                    foreach ($contact_ids as $index => $contact_id)
+                        $params['contact_id' . ($index ? ('.' . $index + 1) : '')] = $contact_id;
+
+                    $result = civicrm_api('GroupContact', 'create', $params);
                     
                     if ($result['is_error']) {
                         drush_log(dt(
@@ -111,6 +117,7 @@ function drush_spambot_civicrm($command) {
             break;
         
         default:
+
             drush_log(dt('Unrecognized command: @command', array('@command' => $command)), 'error');
             break;
     

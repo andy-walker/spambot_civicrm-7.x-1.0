@@ -11,7 +11,7 @@
  */
 function spambot_civicrm_user_delete($account) {
     
-    # see if spambot_cron exists in the call stack - we only want to delete the
+    # check if spambot_cron exists in the call stack - we only want to delete the
     # Civi contact if it's spambot that is deleting the user
     $via_spambot = false;
     foreach (debug_backtrace() as $backtrace_item) {
@@ -26,13 +26,13 @@ function spambot_civicrm_user_delete($account) {
         civicrm_initialize();
         
         # attempt to find associated contact id for the user
-        $result = civicrm_api('ufmatch', 'getsingle', array(
+        $result = civicrm_api('UFMatch', 'getsingle', $params = array(
             'version' => 3,
             'uf_id'   => $account->uid
         ));
 
         # no match ..
-        if (!$result['count'])
+        if (!isset($result['contact_id']))
             return watchdog(
                 'spambot_civicrm', 
                 t('Could not find matching contact record for uid @uid when deleting user via spambot', array(
@@ -54,26 +54,23 @@ function spambot_civicrm_user_delete($account) {
                 WATCHDOG_ERROR
             );
 
-        # delete contact record
+        # move contact record to trash
         $delete_result = civicrm_api('contact', 'delete', array(
-            'version'       => 3,
-            'id'            => $result['contact_id'],
-            'skip_undelete' => 1
+            'version' => 3,
+            'id'      => $result['contact_id']
         ));
 
         # check for errors
         if ($delete_result['is_error'])
             return watchdog(
                 'spambot_civicrm', 
-                t('An error occurred deleting contact record for contact id @contact_id: @message', array(
+                t('An error occurred contact record to trash for contact id @contact_id: @message', array(
                     '@contact_id' => $result['contact_id'],
                     '@message'    => $delete_result['error_message']
                 )),
                 array(),
                 WATCHDOG_ERROR
             );
-
-        # note: does that delete the ufmatch record? probably, but better check
 
 
     }
