@@ -31,7 +31,9 @@ function spambot_civicrm_user_delete($account) {
                 'spambot_civicrm', 
                 t('Could not find matching contact record for uid @uid when deleting user via spambot', array(
                     '@uid' => $account->uid
-                ))
+                )),
+                array(),
+                WATCHDOG_ERROR
             );           
 
         # some other kind of error ..
@@ -41,7 +43,9 @@ function spambot_civicrm_user_delete($account) {
                 t('An error occurred finding UFMatch for uid @uid: @message', array(
                     '@uid'     => $account->uid,
                     '@message' => $result['error_message']
-                ))
+                )),
+                array(),
+                WATCHDOG_ERROR
             );
 
         # delete contact record
@@ -58,7 +62,9 @@ function spambot_civicrm_user_delete($account) {
                 t('An error occurred deleting contact record for contact id @contact_id: @message', array(
                     '@contact_id' => $result['contact_id'],
                     '@message'    => $delete_result['error_message']
-                ))
+                )),
+                array(),
+                WATCHDOG_ERROR
             );
 
         # note: does that delete the ufmatch record? probably, but better check
