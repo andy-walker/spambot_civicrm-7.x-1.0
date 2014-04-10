@@ -68,8 +68,10 @@ function drush_spambot_civicrm($command) {
             if ($contact_ids) {
 
                 $result = civicrm_api('group', 'create', array(
-                    'version' => 3,
-                    'title'   => dt('Spambot CiviCRM Contacts - @date', array('@date' => date('d/m/Y H:i:s')))
+                    'version'   => 3,
+                    'title'     => dt('Spambot CiviCRM Contacts - @date', array('@date' => date('d/m/Y H:i:s'))),
+                    'name'      => dt('spambot_@date', array('@date' => date('YmdHis'))),
+                    'is_active' => 1
                 ));
 
                 if ($result['is_error']) {
