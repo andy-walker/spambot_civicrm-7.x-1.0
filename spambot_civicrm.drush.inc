@@ -28,41 +28,17 @@ function drush_spambot_civicrm($command) {
         case 'move-to-group':
             
             civicrm_initialize();
+            $contact_ids = array();
 
             # query all contacts without a corresponding drupal user
-            
-            # nb: because we can't be sure if Civi lives in a different db to Drupal, or if
-            # we have permission to do a cross-db join, doing two separate queries and an 
-            # array_diff is prb the safest way to do this, although it could get a little slow 
-            # with large numbers of contacts and users
-            
-            $uids       = array();
-            $uf_ids     = array();
-            $uf_matches = array();
-
-            # get all uids from Drupal
-            $results = db_select('users', 'u')
-                ->fields('u', array('uid'))
-                ->execute();
-        
-            foreach ($results as $result)
-                $uids[] = $result->uid;
-
-            # get all uf_ids from Civi
+            # (the uf_match record gets deleted when spambot deletes a user)
             $dao = CRM_Core_DAO::executeQuery("
-                SELECT uf_id, contact_id FROM civicrm_uf_match
+                SELECT c.id FROM civicrm_contact c
+             LEFT JOIN civicrm_uf_match ufm ON ufm.contact_id = c.id
+                 WHERE ufm.contact_id IS NULL
             ");
-            while ($dao->fetch()) {
-                $uf_ids[] = $dao->uf_id;
-                # also keep track of the corresponding contact_id, 
-                # so we don't need to look that up again
-                $uf_matches[$dao->uf_id] = $dao->contact_id;
-            }
-
-            # get contact ids without a corresponding Drupal user
-            $contact_ids = array();
-            foreach (array_diff($uf_ids, $uids) as $uid)
-                $contact_ids[] = $uf_matches[$uid]; 
+            while ($dao->fetch())
+                $contact_ids[] = $dao->id;
 
             # create group
             if ($contact_ids) {
