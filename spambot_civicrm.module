@@ -64,7 +64,7 @@ function spambot_civicrm_user_delete($account) {
         if ($delete_result['is_error'])
             return watchdog(
                 'spambot_civicrm', 
-                t('An error occurred contact record to trash for contact id @contact_id: @message', array(
+                t('An error occurred moving contact record to trash for contact id @contact_id: @message', array(
                     '@contact_id' => $result['contact_id'],
                     '@message'    => $delete_result['error_message']
                 )),
